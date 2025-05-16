@@ -1,0 +1,32 @@
+Results for Vector Size: 10
+
+Bubble Sort: 1 
+Insertion Sort: 1 
+Selection Sort: 1 
+Quick Sort: 0
+
+----------------------------------
+Results for Vector Size: 100
+
+Bubble Sort: 131 
+Insertion Sort: 29 
+Selection Sort: 41 
+Quick Sort: 12
+
+----------------------------------
+Results for Vector Size: 1000
+
+Bubble Sort: 13903 
+Insertion Sort: 2529 
+Selection Sort: 3629 
+Quick Sort: 230
+
+----------------------------------
+Results for Vector Size: 10000
+
+Bubble Sort: 900117 
+Insertion Sort: 180125 
+Selection Sort: 242582 
+Quick Sort: 2498
+
+----------------------------------

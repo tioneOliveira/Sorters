@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <chrono>
+#include <fstream>
 
 using namespace std::chrono;
 using namespace std;
@@ -28,6 +29,22 @@ string vectorString(vector<int> vector)
     return vectorItens;
 };
 
+int partition(vector<int> &vec, int low, int high)
+{
+    int pivot = vec[high];
+    int i = (low - 1);
+    for (int j = low; j <= high - 1; j++)
+    {
+        if (vec[j] <= pivot)
+        {
+            i++;
+            swap(vec[i], vec[j]);
+        };
+    };
+    swap(vec[i + 1], vec[high]);
+    return (i + 1);
+}
+
 vector<int> createUnorganizedVector(int lenght, int minimun, int maximum)
 {
     vector<int> unorganizedVector = {};
@@ -40,7 +57,7 @@ vector<int> createUnorganizedVector(int lenght, int minimun, int maximum)
     return unorganizedVector;
 };
 
-vector<int> bubbleSort(vector<int> unorganizedVector)
+void bubbleSort(vector<int> &unorganizedVector)
 {
 
     int vectorSize = unorganizedVector.size();
@@ -57,10 +74,9 @@ vector<int> bubbleSort(vector<int> unorganizedVector)
             };
         };
     };
-    return organizedVector;
 };
 
-vector<int> insertionSort(vector<int> unorganizedVector)
+void insertionSort(vector<int> &unorganizedVector)
 {
     int vectorSize = unorganizedVector.size();
     vector<int> organizedVector = unorganizedVector;
@@ -77,10 +93,9 @@ vector<int> insertionSort(vector<int> unorganizedVector)
         };
         organizedVector[j + 1] = temp;
     };
-    return organizedVector;
 };
 
-vector<int> selectionSort(vector<int> unorganizedVector)
+void selectionSort(vector<int> &unorganizedVector)
 {
     int vectorSize = unorganizedVector.size();
     vector<int> organizedVector = unorganizedVector;
@@ -98,36 +113,73 @@ vector<int> selectionSort(vector<int> unorganizedVector)
         };
         swap(organizedVector[i], organizedVector[minIdx]);
     };
-    return organizedVector;
+};
+
+void quickSort(vector<int> &vec, int low, int high)
+{
+    if (low < high)
+    {
+        int pi = partition(vec, low, high);
+        quickSort(vec, low, pi - 1);
+        quickSort(vec, pi + 1, high);
+    };
+};
+
+long long measureSortTime(void (*sortFunc)(vector<int> &), vector<int> &unorganizedVector)
+{
+    vector<int> vecCopy = unorganizedVector;
+    auto start = high_resolution_clock::now();
+    sortFunc(vecCopy);
+    auto stop = high_resolution_clock::now();
+
+    return duration_cast<microseconds>(stop - start).count();
+};
+
+long long measureQuickSortTime(void (*sortFunc)(vector<int> &, int, int), vector<int> &unorganizedVector)
+{
+    vector<int> vecCopy = unorganizedVector;
+    auto start = high_resolution_clock::now();
+    sortFunc(vecCopy, 0, vecCopy.size() - 1);
+    auto stop = high_resolution_clock::now();
+
+    return duration_cast<microseconds>(stop - start).count();
+};
+
+string tests(int vectorSize, int timesToRun)
+{
+
+    long long bubbleSortClock = 0;
+    long long insertionSortClock = 0;
+    long long selectionSortClock = 0;
+    long long quickSortClock = 0;
+
+    for (int i = 0; i < timesToRun; i++)
+    {
+        vector<int> unorganizedVector = createUnorganizedVector(vectorSize, 0, 999);
+
+        bubbleSortClock += measureSortTime(bubbleSort, unorganizedVector);
+        insertionSortClock += measureSortTime(insertionSort, unorganizedVector);
+        selectionSortClock += measureSortTime(selectionSort, unorganizedVector);
+        quickSortClock += measureQuickSortTime(quickSort, unorganizedVector);
+
+        cout << "Run: " + to_string(i + 1) + " of " + to_string(timesToRun) + " for Vector Size: " + to_string(vectorSize) << endl;
+    };
+
+    return "Results for Vector Size: " + to_string(vectorSize) + "\n\nBubble Sort: " + to_string(bubbleSortClock / timesToRun) +
+           " \nInsertion Sort: " + to_string(insertionSortClock / timesToRun) + " \nSelection Sort: " + to_string(selectionSortClock / timesToRun) +
+           " \nQuick Sort: " + to_string(quickSortClock / timesToRun) + "\n\n----------------------------------\n";
 };
 
 int main()
 {
-    vector<int> unorganizedVector = createUnorganizedVector(100, 0, 999);
-    int vectorSize = unorganizedVector.size();
+    string textForFile = "";
+    ofstream testResultFile("sortTest.txt");
 
-    cout << "Unsorted: " + vectorString(unorganizedVector) + "\n------------------------------------------"
-         << endl;
+    int timesToRun = 100;
 
-    auto BSstart = high_resolution_clock::now();
-    cout << "Bubble Sort: " + vectorString(bubbleSort(unorganizedVector)) + "\n"
-         << endl;
-    auto BSstop = high_resolution_clock::now();
-    auto BSduration = duration_cast<microseconds>(BSstop - BSstart);
-    cout << "Time to Bubble Sort: " + to_string(BSduration.count()) + "\n------------------------------------------" << endl;
-
-    auto ISstart = high_resolution_clock::now();
-    cout << "Insertion Sort: " + vectorString(insertionSort(unorganizedVector)) + "\n"
-         << endl;
-    auto ISstop = high_resolution_clock::now();
-    auto ISduration = duration_cast<microseconds>(ISstop - ISstart);
-    cout << "Time to Insertion Sort: " + to_string(ISduration.count()) + "\n------------------------------------------" << endl;
-
-    auto SSstart = high_resolution_clock::now();
-    cout << "Selection Sort: " + vectorString(selectionSort(unorganizedVector)) + "\n"
-         << endl;
-    auto SSstop = high_resolution_clock::now();
-    auto SSduration = duration_cast<microseconds>(SSstop - SSstart);
-    cout << "Time to Selection Sort: " + to_string(SSduration.count()) + "\n------------------------------------------" << endl;
-    return 0;
+    textForFile += tests(10, timesToRun);
+    textForFile += tests(100, timesToRun);
+    textForFile += tests(1000, timesToRun);
+    textForFile += tests(10000, timesToRun);
+    testResultFile << textForFile;
 };
